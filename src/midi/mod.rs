@@ -35,6 +35,20 @@ pub struct Midi<D: Device> {
 }
 
 impl<D: Device + Clone + Send> Midi<D> {
+    pub fn list() -> Result<(), MidiError> {
+        let midi_in = MidiInput::new("StageBridge").map_err(|e| MidiError::from(e))?;
+        for port in midi_in.ports() {
+            log::info!("IN: '{:?}'", midi_in.port_name(&port).unwrap());
+        }
+
+        let midi_out = MidiOutput::new("StageBridge").map_err(|e| MidiError::from(e))?;
+        for port in midi_out.ports() {
+            log::info!("OUT: '{:?}'", midi_out.port_name(&port).unwrap());
+        }
+
+        Ok(())
+    }
+
     pub fn open(name: &str) -> Result<Self, MidiError> {
         let state = Arc::new(Mutex::new(D::new()));
 

@@ -15,7 +15,8 @@ impl Device for Raw {
     fn process_output(&mut self, output: Vec<u8>) -> Vec<u8> {
         output
     }
-}
+ }
 
 pub mod worlde_easycontrol9;
 pub mod launchpad_x;
+pub mod launch_control_xl;
