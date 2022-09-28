@@ -1,7 +1,8 @@
 use std::time::Duration;
-use tokio::time::sleep;
+use std::sync::mpsc;
 
 use futures::Future;
+use tokio::time::sleep;
 use tokio::task::spawn;
 use tokio::sync::broadcast;
 use tokio_util::sync::CancellationToken;
@@ -64,6 +65,23 @@ where
 
 pub trait Broadcast<T: Clone + Send + 'static> {
     fn subscribe(&self) -> broadcast::Receiver<T>;
+
+    fn subscribe_sync(&self) -> mpsc::Receiver<T> {
+        let (tx, rx) = mpsc::channel();
+        let mut async_rx = self.subscribe();
+        spawn(async move {
+            loop {
+                match async_rx.recv().await {
+                    Ok(input) => match tx.send(input) {
+                        Err(e) => log::error!("{:?}", e),
+                        _ => {}
+                    },
+                    Err(e) => log::error!("{:?}", e),
+                }
+            }
+        });
+        rx
+    }
 
     fn listen<F, Fr>(&self, f: F) -> CancellationToken
     where
