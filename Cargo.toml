@@ -4,10 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-default = ["osc", "midi", "e131"]
+default = ["osc", "midi", "e131", "dmx"]
 midi = ["midir"]
 osc = ["rosc"]
 e131 = ["sacn-unofficial"]
+dmx = []
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }

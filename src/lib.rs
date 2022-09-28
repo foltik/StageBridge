@@ -6,6 +6,8 @@
 #![feature(trait_upcasting)]
 #![allow(incomplete_features)]
 
+#![feature(generic_const_exprs)]
+
 #[cfg(feature = "midi")]
 pub mod midi;
 
@@ -15,4 +17,8 @@ pub mod osc;
 #[cfg(feature = "e131")]
 pub mod e131;
 
+#[cfg(feature = "dmx")]
+pub mod dmx;
+
 pub mod util;
+pub mod num;
