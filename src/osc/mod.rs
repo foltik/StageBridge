@@ -6,14 +6,12 @@ use futures::Future;
 use tokio::sync::broadcast;
 use tokio::task;
 
-use rosc::{OscMessage, OscPacket};
+use rosc::{OscPacket, OscBundle};
 
-pub use rosc::OscType as Type;
-#[derive(Clone, Debug)]
-pub struct Message {
-    pub addr: String,
-    pub args: Vec<Type>,
-}
+pub use rosc::OscMessage as Message;
+pub use rosc::OscType as Value;
+
+use crate::util::future::Broadcast;
 
 #[derive(Clone)]
 pub struct Osc {
@@ -32,19 +30,22 @@ impl Osc {
         task::spawn(async move {
             let mut buf = [0u8; rosc::decoder::MTU];
             loop {
-                let (size, addr) = sock.recv_from(&mut buf).await.unwrap();
-                log::trace!("{} bytes from {:?}", size, addr);
+                let (size, _addr) = sock.recv_from(&mut buf).await.unwrap();
+                // log::trace!("{} bytes from {:?}", size, addr);
                 let packet = rosc::decoder::decode(&buf[..size]).unwrap();
-                match packet {
-                    OscPacket::Message(OscMessage { addr, args }) => {
-                        log::trace!("{}: {:?}", addr, args);
-                        let msg = Message { addr, args };
-                        match _tx.send(msg.clone()) {
-                            Err(_) => log::warn!("Dropped message {:?}", msg),
-                            _ => {}
-                        }
+
+                fn flatten(packet: OscPacket) -> Vec<Message> {
+                    match packet {
+                        OscPacket::Bundle(OscBundle { content, .. }) => content.into_iter().flat_map(flatten).collect::<Vec<_>>(),
+                        OscPacket::Message(message) => vec![message],
                     }
-                    _ => log::debug!("Unknown packet {:?}", packet),
+                }
+
+                for msg in flatten(packet) {
+                    match _tx.send(msg.clone()) {
+                        Err(_) => log::warn!("Dropped message {:?}", msg),
+                        _ => {}
+                    }
                 }
             }
         });
@@ -64,5 +65,11 @@ impl Osc {
         Fut: Future<Output = ()> + Send + 'static,
     {
         task::spawn(f((*self).clone()));
+    }
+}
+
+impl Broadcast<Message> for Osc {
+    fn subscribe(&self) -> broadcast::Receiver<Message> {
+        self.tx.subscribe()
     }
 }
