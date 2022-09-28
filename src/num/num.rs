@@ -51,7 +51,7 @@ pub trait Float: Sized {
     /// https://www.desmos.com/calculator/fsfuxn4xvg
     fn square(self, pd: Self, duty: Self) -> Self;
 
-    fn u8(self) -> u8;
+    fn byte(self) -> u8;
 }
 
 impl Float for f32 {
@@ -104,11 +104,18 @@ impl Float for f32 {
         self.fmod(pd).step(pd * duty)
     }
 
-    fn u8(self) -> u8 {
-        (self * 255.0).floor() as u8
+    fn byte(self) -> u8 {
+        (self.clamp(0.0, 1.0) * 255.0) as u8
     }
 }
 
-pub fn u8(fr: f32) -> u8 {
-    (fr * 255.0).floor() as u8
+
+pub trait Byte: Sized {
+    fn float(self) -> f32;
+}
+
+impl Byte for u8 {
+    fn float(self) -> f32 {
+        (self as f32) / 255.0
+    }
 }
