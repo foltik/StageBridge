@@ -1,6 +1,18 @@
 use std::collections::HashMap;
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
+pub enum Color {
+    Palette(PaletteColor),
+    Rgb(u8, u8, u8)
+}
+
+impl From<PaletteColor> for Color {
+    fn from(color: PaletteColor) -> Self {
+        Color::Palette(color)
+    }
+}
+
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum PaletteColor {
     Index(u8),
     Off,

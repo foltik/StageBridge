@@ -8,7 +8,7 @@ use tokio::sync::{broadcast, mpsc};
 
 type Fraction = fraction::Fraction;
 
-use stagebridge::osc::{Osc, Message, Type};
+use stagebridge::osc::{Osc, Message, Value};
 
 #[derive(Clone)]
 pub struct BeatGrid {
@@ -52,7 +52,7 @@ impl BeatGrid {
                 match rx.recv().await {
                     Ok(Message { addr, args }) => match addr.as_str() {
                         "/bpm" => {
-                            if let Some(Type::Float(f)) = args.get(0) {
+                            if let Some(Value::Float(f)) = args.get(0) {
                                 log::debug!("BPM: {}", f);
                                 bpm.store(*f, Ordering::Release);
                             } else {
@@ -60,7 +60,7 @@ impl BeatGrid {
                             }
                         },
                         "/beats" => {
-                            if let Some(Type::Int(i)) = args.get(0) {
+                            if let Some(Value::Int(i)) = args.get(0) {
                                 let n = i.rem_euclid(std::u16::MAX as i32) as u16;
                                 log::trace!("beat {}", n);
                                 beat.store(n, Ordering::Release);

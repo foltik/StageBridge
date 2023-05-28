@@ -145,10 +145,10 @@ impl Device for LaunchControlXL {
             Output::SendSelect(i, col, b) => light_sysex(if i { 0x2c } else { 0x2d }, col, b),
             Output::TrackSelect(i, col, b) => light_sysex(if i { 0x2e } else { 0x2f }, col, b),
 
-            Output::Device(col, b) => light_sysex(0x2c, col, b),
-            Output::Mute(col, b) => light_sysex(0x2d, col, b),
-            Output::Solo(col, b) => light_sysex(0x2e, col, b),
-            Output::Record(col, b) => light_sysex(0x2f, col, b),
+            Output::Device(col, b) => light_sysex(0x28, col, b),
+            Output::Mute(col, b) => light_sysex(0x29, col, b),
+            Output::Solo(col, b) => light_sysex(0x2a, col, b),
+            Output::Record(col, b) => light_sysex(0x2b, col, b),
         }
     }
 }

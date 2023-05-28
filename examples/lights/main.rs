@@ -218,12 +218,12 @@ async fn main() -> Result<()> {
             let mut rx = osc.subscribe();
             loop {
                 use tokio::sync::broadcast::error::RecvError;
-                use stagebridge::osc::{Message, Type};
+                use stagebridge::osc::{Message, Value};
                 match rx.recv().await {
                     Ok(Message { addr, args }) => match addr.as_str() {
                         "/input" => {
-                            if let Type::Int(y) = args[0] {
-                                if let Type::Int(x) = args[1] {
+                            if let Value::Int(y) = args[0] {
+                                if let Value::Int(x) = args[1] {
 
                                     log::debug!("{}, {}", x, y);
                                     process(x as i8, y as i8).await;

@@ -1,5 +1,6 @@
 use std::net::{IpAddr, SocketAddr};
 use std::str::FromStr;
+use std::sync::Arc;
 use tokio::net::UdpSocket;
 
 use futures::Future;
@@ -15,6 +16,7 @@ use crate::util::future::Broadcast;
 
 #[derive(Clone)]
 pub struct Osc {
+    sock: Arc<UdpSocket>,
     tx: broadcast::Sender<Message>,
 }
 
@@ -23,14 +25,16 @@ impl Osc {
         let sock = UdpSocket::bind(SocketAddr::new(IpAddr::from_str("0.0.0.0").unwrap(), port))
             .await
             .expect("Failed to bind OSC port");
+        let sock = Arc::new(sock);
 
         let (tx, _) = broadcast::channel(64);
 
+        let _sock = Arc::clone(&sock);
         let _tx = tx.clone();
         task::spawn(async move {
             let mut buf = [0u8; rosc::decoder::MTU];
             loop {
-                let (size, _addr) = sock.recv_from(&mut buf).await.unwrap();
+                let (size, _addr) = _sock.recv_from(&mut buf).await.unwrap();
                 // log::trace!("{} bytes from {:?}", size, addr);
                 let packet = rosc::decoder::decode(&buf[..size]).unwrap();
 
@@ -51,8 +55,17 @@ impl Osc {
         });
 
         Self {
+            sock,
             tx
         }
+    }
+
+    pub async fn send(&self, dest: &str, msg: Message) {
+        let data = rosc::encoder::encode(&OscPacket::Message(msg)).unwrap();
+        match self.sock.send_to(&data, dest).await {
+            Err(e) => log::error!("OSC: failed to send to {}: {:?}", dest, e),
+            _ => {},
+        };
     }
 
     pub fn subscribe(&self) -> broadcast::Receiver<Message> {

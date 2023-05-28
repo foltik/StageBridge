@@ -2,11 +2,8 @@ use super::Device;
 
 pub mod gen;
 
-mod ext;
-pub use ext::LaunchpadMidiExt;
-
-mod pipeline;
-pub use pipeline::LaunchpadPipelineExt;
+// mod ext;
+// pub use ext::LaunchpadMidiExt;
 
 pub mod types;
 use types::*;
@@ -46,7 +43,7 @@ pub enum Input {
     Unknown,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub enum Output {
     Light(Pos, PaletteColor),
     Flash(Pos, PaletteColor),
@@ -54,6 +51,8 @@ pub enum Output {
     Off(Pos),
     Rgb(Pos, (u8, u8, u8)),
     Clear,
+    ClearColor(Color),
+    Batch(Vec<(Pos, Color)>),
 
     Mode(Mode),
     Brightness(f32),
@@ -136,6 +135,44 @@ impl Device for LaunchpadX {
                 data.extend_from_slice(&[0xF0, 0x0, 0x20, 0x29, 0x2, 0xC, 0x3]);
                 for i in 0..81 {
                     data.extend_from_slice(&[0x0, Index9(i).byte(), 0x0]);
+                }
+                data.push(0xF7);
+
+                data
+            },
+            Output::ClearColor(color) => {
+                let mut data = Vec::with_capacity(8 + (64 * 4));
+
+                data.extend_from_slice(&[0xF0, 0x0, 0x20, 0x29, 0x2, 0xC, 0x3]);
+                for i in 0..8 {
+                    for j in 0..8 {
+                        match color {
+                            Color::Palette(col) => {
+                                data.extend_from_slice(&[0x0, Coord(i, j).byte(), col.byte()]);
+                            },
+                            Color::Rgb(r, g, b) => {
+                                data.extend_from_slice(&[0x3, Coord(i, j).byte(), r, g, b]);
+                            },
+                        }
+                    }
+                }
+                data.push(0xF7);
+
+                data
+            }
+            Output::Batch(colorspecs) => {
+                let mut data = Vec::with_capacity(8 + (81 * 4));
+
+                data.extend_from_slice(&[0xF0, 0x0, 0x20, 0x29, 0x2, 0xC, 0x3]);
+                for (pos, color) in colorspecs {
+                    match color {
+                        Color::Palette(col) => {
+                            data.extend_from_slice(&[0x0, pos.byte(), col.byte()]);
+                        },
+                        Color::Rgb(r, g, b) => {
+                            data.extend_from_slice(&[0x3, pos.byte(), r, g, b]);
+                        },
+                    }
                 }
                 data.push(0xF7);
 

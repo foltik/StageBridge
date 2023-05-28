@@ -28,6 +28,7 @@ dyn-clone = "1"
 derive_more = "0.99"
 fraction = "0.9"
 rand = "0.8"
+easing = "0.0.5"
 
 # TODO: lights example specific
 pretty_env_logger = { version = "0.4" }

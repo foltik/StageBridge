@@ -1,15 +1,23 @@
-use std::f32::consts::PI;
+use std::f32::consts::{PI, FRAC_PI_2};
 
 use super::Range;
 
 pub trait Float: Sized {
     /// 0 below the threshold and 1 above it
     fn step(self, threshold: Self) -> Self;
+    /// false below the threshold and true above it
+    fn bstep(self, threshold: Self) -> bool;
+
+    fn rclamp<R: Into<Range>>(self, range: R) -> Self;
 
     /// Euclidean remainder (proper float mod)
     fn fmod(self, v: Self) -> Self;
+    /// Mod and then divide
+    fn mod_div(self, pd: f32) -> Self;
     /// Interpolate self in 0..1 onto another range
     fn lerp<R: Into<Range>>(self, onto: R) -> Self;
+    /// Interpolate self in 0..1 onto another range as a u8
+    fn lerp_byte<R: Into<Range>>(self, onto: R) -> u8;
     /// Interpolate self from a range onto 0..1
     fn ilerp<R: Into<Range>>(self, from: R) -> Self;
     /// Map self from a range onto another range
@@ -35,6 +43,8 @@ pub trait Float: Sized {
     /// https://www.desmos.com/calculator/i6cdluzrj4
     fn cover(self, amt: Self) -> Self;
 
+    fn ssin(self, pd: Self) -> Self;
+    fn scos(self, pd: Self) -> Self;
     /// sin(ish), but domain and range are 0..1
     /// https://www.desmos.com/calculator/c8xbmebyiy
     fn fsin(self, pd: Self) -> Self;
@@ -50,8 +60,14 @@ pub trait Float: Sized {
     /// Square wave
     /// https://www.desmos.com/calculator/fsfuxn4xvg
     fn square(self, pd: Self, duty: Self) -> Self;
+    fn negsquare(self, pd: Self, duty: Self) -> Self;
+    /// Square wave, but booleans
+    fn bsquare(self, pd: Self, duty: Self) -> bool;
 
+    /// Convert 0..1 to 0..255u8
     fn byte(self) -> u8;
+    /// Convert 0..1 to 0..127u8
+    fn midi_byte(self) -> u8;
 }
 
 impl Float for f32 {
@@ -62,14 +78,28 @@ impl Float for f32 {
             1.0
         }
     }
+    fn bstep(self, threshold: f32) -> bool {
+        self.step(threshold) == 1.0
+    }
+
+    fn rclamp<R: Into<Range>>(self, range: R) -> f32 {
+        let range = range.into();
+        self.clamp(range.lo, range.hi)
+    }
 
     fn fmod(self, v: f32) -> f32 {
         self.rem_euclid(v)
     }
+    fn mod_div(self, v: f32) -> f32 {
+        self.fmod(v) / v
+    }
 
     fn lerp<R: Into<Range>>(self, onto: R) -> f32 {
         let (i, j) = onto.into().bounds();
-        i + self * (j - i)
+        i + self.clamp(0.0, 1.0) * (j - i)
+    }
+    fn lerp_byte<R: Into<Range>>(self, onto: R) -> u8 {
+        self.lerp(onto) as u8
     }
     fn ilerp<R: Into<Range>>(self, from: R) -> f32 {
         let (i, j) = from.into().bounds();
@@ -86,6 +116,14 @@ impl Float for f32 {
         self.line(amt, (1.0 - amt) / 2.0)
     }
 
+    fn ssin(self, pd: f32) -> f32 {
+        let t = (2.0 * PI * self) / pd;
+        t.sin()
+    }
+    fn scos(self, pd: f32) -> f32 {
+        let t = (2.0 * PI * self) / pd;
+        t.cos()
+    }
     fn fsin(self, pd: f32) -> f32 {
         let t = (2.0 * PI * self) / pd + (PI / 2.0);
         0.5 * t.sin() + 0.5
@@ -101,21 +139,122 @@ impl Float for f32 {
         (ramp - pd).abs() / pd
     }
     fn square(self, pd: f32, duty: f32) -> f32 {
-        self.fmod(pd).step(pd * duty)
+        1.0 - self.fmod(pd).step(pd * duty)
+    }
+    fn negsquare(self, pd: f32, duty: f32) -> f32 {
+        2.0 * (1.0 - self.fmod(pd).step(pd * duty)) - 1.0
+    }
+    fn bsquare(self, pd: f32, duty: f32) -> bool {
+        self.square(pd, duty) == 1.0
     }
 
     fn byte(self) -> u8 {
-        (self.clamp(0.0, 1.0) * 255.0) as u8
+        self.lerp_byte(0..255)
+    }
+    fn midi_byte(self) -> u8 {
+        self.lerp_byte(0..127)
     }
 }
 
 
 pub trait Byte: Sized {
+    /// Convert 0..255 to 0..1f
     fn float(self) -> f32;
+    /// Convert 0..127 to 0..1f
+    fn midi_float(self) -> f32;
 }
 
 impl Byte for u8 {
     fn float(self) -> f32 {
         (self as f32) / 255.0
+    }
+
+    fn midi_float(self) -> f32 {
+        (self as f32) / 127.0
+    }
+}
+
+pub trait Ease: Sized {
+    fn ease_quad_in(self) -> Self;
+    fn ease_quad_out(self) -> Self;
+    fn ease_quad_inout(self) -> Self;
+    fn ease_cubic_in(self) -> Self;
+    fn ease_cubic_out(self) -> Self;
+    fn ease_cubic_inout(self) -> Self;
+    fn ease_quartic_in(self) -> Self;
+    fn ease_quartic_out(self) -> Self;
+    fn ease_quartic_inout(self) -> Self;
+    fn ease_exp_in(self) -> Self;
+    fn ease_exp_out(self) -> Self;
+    fn ease_exp_inout(self) -> Self;
+    fn ease_sin_in(self) -> Self;
+    fn ease_sin_out(self) -> Self;
+    fn ease_sin_inout(self) -> Self;
+}
+
+impl Ease for f32 {
+    fn ease_quad_in(self) -> f32 {
+        self * self
+    }
+    fn ease_quad_out(self) -> f32 {
+        -(self * (self - 2.))
+    }
+    fn ease_quad_inout(self) -> f32 {
+        if self < 0.5 { 2. * self * self }
+        else { (-2. * self * self) + self.mul_add(4., -1.) }
+    }
+
+    fn ease_cubic_in(self) -> f32 {
+        self * self * self
+    }
+    fn ease_cubic_out(self) -> f32 {
+        let y = self - 1.;
+        y * y * y + 1.
+    }
+    fn ease_cubic_inout(self) -> f32 {
+        if self < 0.5 { 4. * self * self * self }
+        else {
+            let y = self.mul_add(2., -2.);
+            (y * y * y).mul_add(0.5, 1.)
+        }
+    }
+    fn ease_quartic_in(self) -> f32 {
+        self * self * self * self
+    }
+    fn ease_quartic_out(self) -> f32 {
+        let y = self - 1.;
+        (y * y * y).mul_add(1. - self, 1.)
+    }
+    fn ease_quartic_inout(self) -> f32 {
+        if self < 0.5 { 8. * self * self * self * self }
+        else {
+            let y = self - 1.;
+            (y * y * y * y).mul_add(-8., 1.)
+        }
+    }
+    fn ease_sin_in(self) -> f32 {
+        let y = (self - 1.) * FRAC_PI_2;
+        y.sin() + 1.
+    }
+    fn ease_sin_out(self) -> f32 {
+        (self * FRAC_PI_2).sin()
+    }
+    fn ease_sin_inout(self) -> f32 {
+        if self < 0.5 { 0.5 * (1. - (self * self).mul_add(-4., 1.).sqrt()) }
+        else          { 0.5 * ((self.mul_add(-2., 3.) * self.mul_add(2., -1.)).sqrt() + 1.) }
+    }
+    fn ease_exp_in(self) -> f32 {
+        if self == 0. { 0. }
+        else          { (10. * (self - 1.)).exp2() }
+    }
+    fn ease_exp_out(self) -> f32 {
+        if self == 1. { 1. }
+        else          { 1. - (-10. * self).exp2() }
+    }
+    fn ease_exp_inout(self) -> f32 {
+        if      self == 1. { 1. }
+        else if self == 0. { 0. }
+        else if self < 0.5 { self.mul_add(20., -10.).exp2() * 0.5 }
+        else               { self.mul_add(-20., 10.).exp2().mul_add(-0.5, 1.) }
     }
 }
