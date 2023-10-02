@@ -20,5 +20,7 @@ pub mod e131;
 #[cfg(feature = "dmx")]
 pub mod dmx;
 
+pub mod color;
+
 pub mod util;
 pub mod num;
