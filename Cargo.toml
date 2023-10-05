@@ -11,27 +11,11 @@ e131 = ["sacn-unofficial"]
 dmx = []
 
 [dependencies]
-tokio = { version = "1", features = ["full"] }
-tokio-util = "0.6"
-futures = "0.3"
-parking_lot = "0.11"
-
 log = "0.4"
-anyhow = "1"
-thiserror = "1"
+eyre = "0.6"
 
 midir = { version = "0.7", optional = true }
 rosc = { version = "0.5", optional = true }
 sacn-unofficial = { version = "0.9", optional = true }
 
-dyn-clone = "1"
-derive_more = "0.99"
-fraction = "0.9"
 rand = "0.8"
-easing = "0.0.5"
-
-# TODO: lights example specific
-pretty_env_logger = { version = "0.4" }
-atomic_float = "0.1"
-lazy_static = "1"
-async_once = "0.2"
