@@ -149,10 +149,10 @@ impl Float for f64 {
     }
 
     fn byte(self) -> u8 {
-        self.lerp_byte(0..255)
+        self.clamp(0.0, 1.0).lerp_byte(0..255)
     }
     fn midi_byte(self) -> u8 {
-        self.lerp_byte(0..127)
+        self.clamp(0.0, 1.0).lerp_byte(0..127)
     }
 }
 

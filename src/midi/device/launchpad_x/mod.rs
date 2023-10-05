@@ -1,26 +1,22 @@
+use crate::num::{Byte, Float};
+
 use super::Device;
-
-pub mod gen;
-
-// mod ext;
-// pub use ext::LaunchpadMidiExt;
 
 pub mod types;
 use types::*;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct LaunchpadX {
     mode: Mode,
 }
 
-
 #[derive(Copy, Clone, Debug)]
 pub enum Input {
-    Press(Index, f32),
+    Press(Index, f64),
     Release(Index),
 
-    MonoPressure(f32),
-    PolyPressure(Index, f32),
+    MonoPressure(f64),
+    PolyPressure(Index, f64),
 
     Up(bool),
     Down(bool),
@@ -55,30 +51,16 @@ pub enum Output {
     Batch(Vec<(Pos, Color)>),
 
     Mode(Mode),
-    Brightness(f32),
+    Brightness(f64),
     Velocity(Velocity),
     Pressure(Pressure, PressureCurve),
 
     Clock,
 }
 
-fn float(v: u8) -> f32 {
-    (v as f32) / 127.0
-}
-
-fn byte(f: f32) -> u8 {
-    (f.clamp(0.0, 1.0) * 127.0) as u8
-}
-
 impl Device for LaunchpadX {
     type Input = Input;
     type Output = Output;
-
-    fn new() -> Self {
-        Self {
-            mode: Mode::Live,
-        }
-    }
 
     fn process_input(&mut self, raw: &[u8]) -> Option<Input> {
         Some(match raw[0] {
@@ -89,7 +71,7 @@ impl Device for LaunchpadX {
                         let i = Index::from_byte(raw[1]);
                         match raw[2] {
                             0 => Input::Release(i),
-                            v => Input::Press(i, float(v))
+                            v => Input::Press(i, v.midi_float())
                         }
                     }
                 }
@@ -116,8 +98,8 @@ impl Device for LaunchpadX {
                     _ => unreachable!(),
                 }
             }
-            0xD0 => Input::MonoPressure(float(raw[1])),
-            0xA0 => Input::PolyPressure(Index::from_byte(raw[1]), float(raw[2])),
+            0xD0 => Input::MonoPressure(raw[1].midi_float()),
+            0xA0 => Input::PolyPressure(Index::from_byte(raw[1]), raw[2].midi_float()),
             _ => return None
         })
     }
@@ -151,7 +133,7 @@ impl Device for LaunchpadX {
                                 data.extend_from_slice(&[0x0, Coord(i, j).byte(), col.byte()]);
                             },
                             Color::Rgb(r, g, b) => {
-                                data.extend_from_slice(&[0x3, Coord(i, j).byte(), r, g, b]);
+                                data.extend_from_slice(&[0x3, Coord(i, j).byte(), r.midi_byte(), g.midi_byte(), b.midi_byte()]);
                             },
                         }
                     }
@@ -170,7 +152,7 @@ impl Device for LaunchpadX {
                             data.extend_from_slice(&[0x0, pos.byte(), col.byte()]);
                         },
                         Color::Rgb(r, g, b) => {
-                            data.extend_from_slice(&[0x3, pos.byte(), r, g, b]);
+                            data.extend_from_slice(&[0x3, pos.byte(), r.midi_byte(), g.midi_byte(), b.midi_byte()]);
                         },
                     }
                 }
@@ -186,7 +168,7 @@ impl Device for LaunchpadX {
                 };
                 vec![0xF0, 0x00, 0x20, 0x29, 0x2, 0x0C, 0x0E, mode, 0xF7]
             },
-            Output::Brightness(f) => vec![0xF0, 0x00, 0x20, 0x29, 0x2, 0xC, 0x8, byte(f), 0xF7],
+            Output::Brightness(f) => vec![0xF0, 0x00, 0x20, 0x29, 0x2, 0xC, 0x8, f.midi_byte(), 0xF7],
             Output::Velocity(v) => {
                 let curve = match v {
                     Velocity::Low => 0,

@@ -1,21 +1,12 @@
-pub use super::Device;
+use std::fmt::Debug;
 
-#[derive(Copy, Clone, Debug)]
-pub struct Raw;
+pub trait Device: Send + 'static {
+    type Input: Send + Debug;
+    type Output: Send + Debug;
 
-impl Device for Raw {
-    fn new() -> Self {
-        Self
-    }
-
-    fn process_input(&mut self, raw: &[u8]) -> Option<Vec<u8>> {
-        Some(raw.to_owned())
-    }
-
-    fn process_output(&mut self, output: Vec<u8>) -> Vec<u8> {
-        output
-    }
- }
+    fn process_input(&mut self, data: &[u8]) -> Option<Self::Input>;
+    fn process_output(&mut self, output: Self::Output) -> Vec<u8>;
+}
 
 pub mod worlde_easycontrol9;
 pub mod launchpad_x;

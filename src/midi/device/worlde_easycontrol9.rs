@@ -1,33 +1,27 @@
 use super::Device;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Debug, Default)]
 pub struct WorldeEasyControl9 {
     bank: u8,
     encoder: u8,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Input {
     TopButton(u8, bool),
     MainButton(u8, bool),
     CtrlButton(u8, bool),
     BankButton(u8, bool),
-    Slider(u8, f32),
-    Knob(u8, f32),
-    Fader(f32),
+    Slider(u8, f64),
+    Knob(u8, f64),
+    Fader(f64),
     Encoder(bool),
     Bank(u8),
 }
 
 impl Device for WorldeEasyControl9 {
     type Input = Input;
-
-    fn new() -> Self {
-        Self {
-            bank: 0,
-            encoder: 0,
-        }
-    }
+    type Output = Vec<u8>;
 
     fn process_input(&mut self, raw: &[u8]) -> Option<Input> {
         Some(match raw[0] {
@@ -35,12 +29,12 @@ impl Device for WorldeEasyControl9 {
                 let cc = raw[1];
                 let state = raw[2];
                 let on = state == 127;
-                let fl = state as f32 / 126.0;
+                let fl = state as f64 / 126.0;
 
                 match cc {
                     1..=2 => Input::BankButton(cc - 1, on),
                     9 => Input::Fader(
-                        (std::cmp::max(state, 1) - 1) as f32 / 126.0,
+                        (std::cmp::max(state, 1) - 1) as f64 / 126.0,
                     ),
                     14..=22 => Input::Knob(cc - 14, fl),
                     23..=31 => Input::MainButton(cc - 23, on),

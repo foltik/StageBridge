@@ -1,5 +1,6 @@
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
 pub enum Mode {
+    #[default]
     Live,
     Programmer
 }

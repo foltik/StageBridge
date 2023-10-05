@@ -1,7 +1,6 @@
 use std::net::{IpAddr, SocketAddr};
-
 use std::str::FromStr;
-use anyhow::Result;
+use eyre::Result;
 
 use sacn_unofficial::source::SacnSource;
 use sacn_unofficial::packet::ACN_SDT_MULTICAST_PORT;
@@ -30,12 +29,8 @@ impl E131 {
     }
 
     pub fn send(&mut self, data: &[u8]) {
-        // let before = std::time::Instant::now();
-        match self.src.send(&[self.universe], data, None, Some(self.dst), None) {
-            Err(_) => log::warn!("E131 send failed"),
-            _ => {},
+        if let Err(e) = self.src.send(&[self.universe], data, None, Some(self.dst), None) {
+            log::error!("{e}");
         }
-        // let after = std::time::Instant::now();
-        // log::trace!("sent in {:?}", after.duration_since(before));
     }
 }
