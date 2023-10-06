@@ -17,11 +17,13 @@ impl Device for Strobe {
     fn channels(&self) -> usize { 6 }
 
     fn encode(&self, buf: &mut [u8]) {
+        let Rgb(r, g, b) = self.color;
+
         buf[0] = self.alpha.byte();
         // buf[1]: mode
-        buf[2] = self.color.r().byte();
-        buf[3] = self.color.g().byte();
-        buf[4] = self.color.b().byte();
+        buf[2] = r.byte();
+        buf[3] = g.byte();
+        buf[4] = b.byte();
         // buf[5]: sound control
     }
 }
@@ -46,7 +48,7 @@ impl Default for Strobe {
     fn default() -> Self {
         Self {
             // mode: StrobeMode::Manual,
-            color: Rgb::off(),
+            color: Rgb::BLACK,
             alpha: 1.0,
         }
     }

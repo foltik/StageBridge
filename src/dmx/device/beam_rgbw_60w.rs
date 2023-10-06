@@ -60,6 +60,8 @@ impl Device for Beam {
     fn channels(&self) -> usize { 15 }
 
     fn encode(&self, buf: &mut [u8]) {
+        let Rgbw(r, g, b, w) = self.color;
+
         buf[0] = self.yaw.byte();
         // buf[0] = (self.yaw * (2.0 / 3.0)).byte();
         buf[0] = self.yaw.lerp((1.0/3.0)..1.0).byte();
@@ -69,10 +71,10 @@ impl Device for Beam {
         buf[4] = (1.0 - self.speed).byte();
         buf[5] = self.alpha.byte();
         // buf[6]: strobe
-        buf[7] = self.color.r().byte();
-        buf[8] = self.color.g().byte();
-        buf[9] = self.color.b().byte();
-        buf[10] = self.color.w().byte();
+        buf[7] = r.byte();
+        buf[8] = g.byte();
+        buf[9] = b.byte();
+        buf[10] = w.byte();
         // buf[11]: color preset
         buf[12] = self.mode.byte();
         // buf[13]: auto pitch/yaw, reset
@@ -131,7 +133,7 @@ impl Default for Beam {
             yaw: 2.0 / 3.0,
             speed: 1.0,
 
-            color: Rgbw::white(),
+            color: Rgbw::BLACK,
             alpha: 1.0,
         }
     }

@@ -1,11 +1,15 @@
 use std::fmt::Debug;
 
-pub trait Device: Send + 'static {
+use super::Midi;
+
+pub trait Device: Sized + Send + 'static {
     type Input: Send + Debug;
     type Output: Send + Debug;
 
     fn process_input(&mut self, data: &[u8]) -> Option<Self::Input>;
     fn process_output(&mut self, output: Self::Output) -> Vec<u8>;
+
+    fn init(_midi: &mut Midi<Self>) {}
 }
 
 pub mod worlde_easycontrol9;

@@ -16,9 +16,11 @@ impl Device for Bar {
     fn channels(&self) -> usize { 7 }
 
     fn encode(&self, buf: &mut [u8]) {
-        buf[0] = self.color.r().byte();
-        buf[1] = self.color.g().byte();
-        buf[2] = self.color.b().byte();
+        let Rgb(r, g, b) = self.color;
+
+        buf[0] = r.byte();
+        buf[1] = g.byte();
+        buf[2] = b.byte();
         // buf[3]: preset colors
         // buf[4]: strobe
         // buf[5]: mode

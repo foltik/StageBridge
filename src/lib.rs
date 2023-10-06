@@ -7,6 +7,7 @@
 
 #![allow(incomplete_features)]
 #![allow(clippy::module_inception)]
+#![allow(clippy::eq_op)]
 
 #[cfg(feature = "midi")]
 pub mod midi;

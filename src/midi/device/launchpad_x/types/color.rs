@@ -70,6 +70,46 @@ impl Distribution<PaletteColor> for Standard {
     }
 }
 
+use crate::color::{Rgb, Rgbw};
+impl From<PaletteColor> for Rgbw {
+    fn from(p: PaletteColor) -> Self {
+        match p {
+            PaletteColor::Index(_)   => Rgbw::WHITE,
+            PaletteColor::Off        => Rgbw::BLACK,
+            PaletteColor::White      => Rgbw::WHITE,
+            PaletteColor::Red        => Rgbw::RED,
+            PaletteColor::Orange     => Rgbw::ORANGE,
+            PaletteColor::Yellow     => Rgbw::YELLOW,
+            PaletteColor::Pea        => Rgbw::PEA,
+            PaletteColor::Lime       => Rgbw::LIME,
+            PaletteColor::Mint       => Rgbw::MINT,
+            PaletteColor::Cyan       => Rgbw::CYAN,
+            PaletteColor::Blue       => Rgbw::BLUE,
+            PaletteColor::Violet     => Rgbw::VIOLET,
+            PaletteColor::Magenta    => Rgbw::MAGENTA,
+            PaletteColor::Pink       => Rgbw::PINK,
+        }
+    }
+}
+impl From<PaletteColor> for Rgb {
+    fn from(p: PaletteColor) -> Self {
+        Rgbw::from(p).into()
+    }
+}
+
+impl From<Rgbw> for Color {
+    fn from(color: Rgbw) -> Self {
+        let Rgb(r, g, b) = color.into();
+        Color::Rgb(r, g, b)
+    }
+}
+impl From<Rgb> for Color {
+    fn from(Rgb(r, g, b): Rgb) -> Self {
+        Color::Rgb(r, g, b)
+    }
+}
+
+
 // use std::collections::HashMap;
 // use std::sync::LazyLock;
 // static TABLE: LazyLock<HashMap<u8, (u8, u8, u8)>> = LazyLock::new(|| [

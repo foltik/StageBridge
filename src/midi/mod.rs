@@ -32,13 +32,13 @@ impl<D: Device> Midi<D> {
         let _thread = thread::spawn(move || loop {
             if let Ok(data) = raw_rx.try_recv() {
                 if let Some(input) = device.process_input(&data) {
-                    log::debug!("{_name} <- {input:?}");
+                    log::trace!("{_name} <- {input:?}");
                     in_tx.send(input).unwrap();
                 }
             }
 
             if let Ok(output) = out_rx.try_recv() {
-                log::debug!("{_name} -> {output:?}");
+                log::trace!("{_name} -> {output:?}");
                 let data = device.process_output(output);
                 raw_tx.send(data).unwrap();
             }
@@ -46,7 +46,10 @@ impl<D: Device> Midi<D> {
             thread::sleep(Duration::from_millis(1));
         });
 
-        Ok(Self { in_rx, out_tx, _raw, _thread })
+        let mut this = Self { in_rx, out_tx, _raw, _thread };
+        D::init(&mut this);
+
+        Ok(this)
     }
 
     pub fn send(&mut self, output: D::Output) {

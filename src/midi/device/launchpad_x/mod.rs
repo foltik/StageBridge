@@ -1,3 +1,4 @@
+use crate::midi::Midi;
 use crate::num::{Byte, Float};
 
 use super::Device;
@@ -61,6 +62,12 @@ pub enum Output {
 impl Device for LaunchpadX {
     type Input = Input;
     type Output = Output;
+
+    fn init(midi: &mut Midi<Self>) {
+        midi.send(Output::Mode(Mode::Programmer));
+        midi.send(Output::Pressure(Pressure::Off, PressureCurve::Medium));
+        midi.send(Output::Clear);
+    }
 
     fn process_input(&mut self, raw: &[u8]) -> Option<Input> {
         Some(match raw[0] {
