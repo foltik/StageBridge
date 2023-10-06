@@ -27,8 +27,9 @@ pub enum BeamMode {
     Auto,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub enum BeamRing {
+    #[default]
     Off,
 
     Red,

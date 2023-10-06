@@ -65,7 +65,7 @@ impl Device for LaunchpadX {
 
     fn init(midi: &mut Midi<Self>) {
         midi.send(Output::Mode(Mode::Programmer));
-        midi.send(Output::Pressure(Pressure::Off, PressureCurve::Medium));
+        midi.send(Output::Pressure(Pressure::Polyphonic, PressureCurve::Medium));
         midi.send(Output::Clear);
     }
 
