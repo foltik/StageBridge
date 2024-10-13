@@ -1,3 +1,4 @@
+use crate::color::Rgb;
 use crate::midi::Midi;
 use crate::num::{Byte, Float};
 
@@ -46,7 +47,7 @@ pub enum Output {
     Flash(Pos, PaletteColor),
     Pulse(Pos, PaletteColor),
     Off(Pos),
-    Rgb(Pos, (u8, u8, u8)),
+    Rgb(Pos, Rgb),
     Clear,
     ClearColor(Color),
     Batch(Vec<(Pos, Color)>),
@@ -117,7 +118,10 @@ impl Device for LaunchpadX {
             Output::Flash(p, col) => vec![0x91, p.byte(), col.byte()],
             Output::Pulse(p, col) => vec![0x92, p.byte(), col.byte()],
             Output::Off(p) => vec![0x80, p.byte(), 0x0],
-            Output::Rgb(p, col) => vec![0xF0, 0x0, 0x20, 0x29, 0x2, 0xC, 0x3, 0x3, p.byte(), col.0, col.1, col.2, 0xF7],
+            Output::Rgb(p, col) => {
+                let Rgb(r, g, b) = col;
+                vec![0xF0, 0x0, 0x20, 0x29, 0x2, 0xC, 0x3, 0x3, p.byte(), r.midi_byte(), g.midi_byte(), b.midi_byte(), 0xF7]
+            },
             Output::Clear => {
                 let mut data = Vec::with_capacity(8 + (81 * 3));
 

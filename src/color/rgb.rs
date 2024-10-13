@@ -50,7 +50,6 @@ impl Rgbw {
     pub const MINT:    Self = Self(0.0,   1.0,   0.267, 0.0);
     pub const CYAN:    Self = Self(0.0,   0.8,   1.0,   0.0);
     pub const BLUE:    Self = Self(0.0,   0.0,   1.0,   0.0);
-    pub const PBLUE:   Self = Self(0.286, 0.01,  0.888, 0.0);
     pub const VIOLET:  Self = Self(0.533, 0.0,   1.0,   0.0);
     pub const MAGENTA: Self = Self(1.0,   0.0,   1.0,   0.0);
     pub const PINK:    Self = Self(1.0,   0.38,  0.8,   0.0);
