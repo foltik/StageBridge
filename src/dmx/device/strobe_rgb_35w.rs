@@ -2,9 +2,9 @@
 //!
 //! https://www.amazon.com/gp/product/B01MZYQJSA
 
-use crate::dmx::Device;
-use crate::num::Float;
 use crate::color::Rgb;
+use crate::dmx::Device;
+use crate::num::Interp;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Strobe {
@@ -14,7 +14,9 @@ pub struct Strobe {
 }
 
 impl Device for Strobe {
-    fn channels(&self) -> usize { 6 }
+    fn channels(&self) -> usize {
+        6
+    }
 
     fn encode(&self, buf: &mut [u8]) {
         let Rgb(r, g, b) = self.color;

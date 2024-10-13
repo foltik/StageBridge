@@ -1,7 +1,7 @@
 #[derive(Copy, Clone, Debug)]
 pub enum Color {
     Palette(PaletteColor),
-    Rgb(f64, f64, f64)
+    Rgb(f64, f64, f64),
 }
 
 impl From<PaletteColor> for Color {
@@ -29,6 +29,7 @@ pub enum PaletteColor {
 }
 
 impl PaletteColor {
+    #[rustfmt::skip]
     pub fn byte(&self) -> u8 {
         match self {
             PaletteColor::Index(b) => *b,
@@ -49,45 +50,25 @@ impl PaletteColor {
     }
 }
 
-use rand::Rng;
-use rand::distributions::{Distribution, Standard};
-impl Distribution<PaletteColor> for Standard {
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> PaletteColor {
-        match rng.gen_range(0..=10) {
-            0  => PaletteColor::Red,
-            1  => PaletteColor::Orange,
-            2  => PaletteColor::Yellow,
-            3  => PaletteColor::Pea,
-            4  => PaletteColor::Lime,
-            5  => PaletteColor::Mint,
-            6  => PaletteColor::Cyan,
-            7  => PaletteColor::Blue,
-            8  => PaletteColor::Violet,
-            9  => PaletteColor::Magenta,
-            10 => PaletteColor::Pink,
-            _  => PaletteColor::White,
-        }
-    }
-}
-
 use crate::color::{Rgb, Rgbw};
 impl From<PaletteColor> for Rgbw {
+    #[rustfmt::skip]
     fn from(p: PaletteColor) -> Self {
         match p {
-            PaletteColor::Index(_)   => Rgbw::WHITE,
-            PaletteColor::Off        => Rgbw::BLACK,
-            PaletteColor::White      => Rgbw::WHITE,
-            PaletteColor::Red        => Rgbw::RED,
-            PaletteColor::Orange     => Rgbw::ORANGE,
-            PaletteColor::Yellow     => Rgbw::YELLOW,
-            PaletteColor::Pea        => Rgbw::PEA,
-            PaletteColor::Lime       => Rgbw::LIME,
-            PaletteColor::Mint       => Rgbw::MINT,
-            PaletteColor::Cyan       => Rgbw::CYAN,
-            PaletteColor::Blue       => Rgbw::BLUE,
-            PaletteColor::Violet     => Rgbw::VIOLET,
-            PaletteColor::Magenta    => Rgbw::MAGENTA,
-            PaletteColor::Pink       => Rgbw::PINK,
+            PaletteColor::Index(_) => Rgbw::WHITE,
+            PaletteColor::Off      => Rgbw::BLACK,
+            PaletteColor::White    => Rgbw::WHITE,
+            PaletteColor::Red      => Rgbw::RED,
+            PaletteColor::Orange   => Rgbw::ORANGE,
+            PaletteColor::Yellow   => Rgbw::YELLOW,
+            PaletteColor::Pea      => Rgbw::PEA,
+            PaletteColor::Lime     => Rgbw::LIME,
+            PaletteColor::Mint     => Rgbw::MINT,
+            PaletteColor::Cyan     => Rgbw::CYAN,
+            PaletteColor::Blue     => Rgbw::BLUE,
+            PaletteColor::Violet   => Rgbw::VIOLET,
+            PaletteColor::Magenta  => Rgbw::MAGENTA,
+            PaletteColor::Pink     => Rgbw::PINK,
         }
     }
 }
@@ -108,7 +89,6 @@ impl From<Rgb> for Color {
         Color::Rgb(r, g, b)
     }
 }
-
 
 // use std::collections::HashMap;
 // use std::sync::LazyLock;

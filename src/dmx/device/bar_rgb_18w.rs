@@ -4,7 +4,7 @@
 
 use crate::color::Rgb;
 use crate::dmx::Device;
-use crate::num::Float;
+use crate::num::Interp;
 
 #[derive(Default, Clone, Copy, Debug)]
 pub struct Bar {
@@ -13,7 +13,9 @@ pub struct Bar {
 }
 
 impl Device for Bar {
-    fn channels(&self) -> usize { 7 }
+    fn channels(&self) -> usize {
+        7
+    }
 
     fn encode(&self, buf: &mut [u8]) {
         let Rgb(r, g, b) = self.color;

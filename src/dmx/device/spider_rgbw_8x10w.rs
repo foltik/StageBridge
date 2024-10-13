@@ -2,15 +2,14 @@
 //!
 //! https://www.amazon.com/gp/product/B081H833BG
 
-use crate::dmx::Device;
-use crate::num::Float;
 use crate::color::Rgbw;
+use crate::dmx::Device;
+use crate::num::Interp;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Spider {
     // pub mode: SpiderMode,
     // pub speed: f64,
-
     pub alpha: f64,
 
     pub color0: Rgbw,
@@ -21,7 +20,9 @@ pub struct Spider {
 }
 
 impl Device for Spider {
-    fn channels(&self) -> usize { 15 }
+    fn channels(&self) -> usize {
+        15
+    }
 
     fn encode(&self, buf: &mut [u8]) {
         let Rgbw(r0, g0, b0, w0) = self.color0;
@@ -68,7 +69,6 @@ impl Default for Spider {
         Self {
             // mode: SpiderMode::Manual,
             // speed: 1.0,
-
             alpha: 1.0,
 
             color0: Rgbw::BLACK,

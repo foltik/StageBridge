@@ -1,23 +1,20 @@
-use std::f64::consts::{PI, FRAC_PI_2};
+use crate::num::{Range, TAU_2};
 
-use super::Range;
-
-pub trait Float: Sized {
+pub trait Interp: Sized {
     /// 0 below the threshold and 1 above it
     fn step(self, threshold: Self) -> Self;
     /// false below the threshold and true above it
     fn bstep(self, threshold: Self) -> bool;
 
-    fn rclamp<R: Into<Range>>(self, range: R) -> Self;
+    /// Clip into a range, e.g. 0..1
+    fn clip<R: Into<Range>>(self, range: R) -> Self;
 
-    /// Euclidean remainder (proper float mod)
+    /// Modulo with support for negative nuambers, aka Euclidean remainder
     fn fmod(self, v: Self) -> Self;
-    /// Mod and then divide
-    fn mod_div(self, pd: f64) -> Self;
+    /// Modulo by a value, then divide by it
+    fn fmod_div(self, v: f64) -> Self;
     /// Interpolate self in 0..1 onto another range
     fn lerp<R: Into<Range>>(self, onto: R) -> Self;
-    /// Interpolate self in 0..1 onto another range as a u8
-    fn lerp_byte<R: Into<Range>>(self, onto: R) -> u8;
     /// Interpolate self from a range onto 0..1
     fn ilerp<R: Into<Range>>(self, from: R) -> Self;
     /// Map self from a range onto another range
@@ -70,7 +67,7 @@ pub trait Float: Sized {
     fn midi_byte(self) -> u8;
 }
 
-impl Float for f64 {
+impl Interp for f64 {
     fn step(self, threshold: f64) -> f64 {
         if self < threshold {
             0.0
@@ -82,7 +79,7 @@ impl Float for f64 {
         self.step(threshold) == 1.0
     }
 
-    fn rclamp<R: Into<Range>>(self, range: R) -> f64 {
+    fn clip<R: Into<Range>>(self, range: R) -> f64 {
         let range = range.into();
         self.clamp(range.lo, range.hi)
     }
@@ -90,16 +87,13 @@ impl Float for f64 {
     fn fmod(self, v: f64) -> f64 {
         self.rem_euclid(v)
     }
-    fn mod_div(self, v: f64) -> f64 {
+    fn fmod_div(self, v: f64) -> f64 {
         self.fmod(v) / v
     }
 
     fn lerp<R: Into<Range>>(self, onto: R) -> f64 {
         let (i, j) = onto.into().bounds();
         i + self.clamp(0.0, 1.0) * (j - i)
-    }
-    fn lerp_byte<R: Into<Range>>(self, onto: R) -> u8 {
-        self.lerp(onto) as u8
     }
     fn ilerp<R: Into<Range>>(self, from: R) -> f64 {
         let (i, j) = from.into().bounds();
@@ -117,15 +111,15 @@ impl Float for f64 {
     }
 
     fn ssin(self, pd: f64) -> f64 {
-        let t = (2.0 * PI * self) / pd;
+        let t = (2.0 * TAU_2 * self) / pd;
         t.sin()
     }
     fn scos(self, pd: f64) -> f64 {
-        let t = (2.0 * PI * self) / pd;
+        let t = (2.0 * TAU_2 * self) / pd;
         t.cos()
     }
     fn fsin(self, pd: f64) -> f64 {
-        let t = (2.0 * PI * self) / pd + (PI / 2.0);
+        let t = (2.0 * TAU_2 * self) / pd + (TAU_2 / 2.0);
         0.5 * t.sin() + 0.5
     }
     fn fcos(self, pd: f64) -> f64 {
@@ -149,112 +143,9 @@ impl Float for f64 {
     }
 
     fn byte(self) -> u8 {
-        self.clamp(0.0, 1.0).lerp_byte(0..255)
+        self.clamp(0.0, 1.0).lerp(0..255) as u8
     }
     fn midi_byte(self) -> u8 {
-        self.clamp(0.0, 1.0).lerp_byte(0..127)
-    }
-}
-
-
-pub trait Byte: Sized {
-    /// Convert 0..255 to 0..1f
-    fn float(self) -> f64;
-    /// Convert 0..127 to 0..1f
-    fn midi_float(self) -> f64;
-}
-
-impl Byte for u8 {
-    fn float(self) -> f64 {
-        (self as f64) / 255.0
-    }
-
-    fn midi_float(self) -> f64 {
-        (self as f64) / 127.0
-    }
-}
-
-pub trait Ease: Sized {
-    fn in_quad(self) -> Self;
-    fn out_quad(self) -> Self;
-    fn inout_quad(self) -> Self;
-    fn in_cubic(self) -> Self;
-    fn out_cubic(self) -> Self;
-    fn inout_cubic(self) -> Self;
-    fn in_quartic(self) -> Self;
-    fn out_quartic(self) -> Self;
-    fn inout_quartic(self) -> Self;
-    fn in_exp(self) -> Self;
-    fn out_exp(self) -> Self;
-    fn inout_exp(self) -> Self;
-    fn in_sin(self) -> Self;
-    fn out_sin(self) -> Self;
-    fn inout_sin(self) -> Self;
-}
-
-impl Ease for f64 {
-    fn in_quad(self) -> f64 {
-        self * self
-    }
-    fn out_quad(self) -> f64 {
-        -(self * (self - 2.))
-    }
-    fn inout_quad(self) -> f64 {
-        if self < 0.5 { 2. * self * self }
-        else { (-2. * self * self) + self.mul_add(4., -1.) }
-    }
-
-    fn in_cubic(self) -> f64 {
-        self * self * self
-    }
-    fn out_cubic(self) -> f64 {
-        let y = self - 1.;
-        y * y * y + 1.
-    }
-    fn inout_cubic(self) -> f64 {
-        if self < 0.5 { 4. * self * self * self }
-        else {
-            let y = self.mul_add(2., -2.);
-            (y * y * y).mul_add(0.5, 1.)
-        }
-    }
-    fn in_quartic(self) -> f64 {
-        self * self * self * self
-    }
-    fn out_quartic(self) -> f64 {
-        let y = self - 1.;
-        (y * y * y).mul_add(1. - self, 1.)
-    }
-    fn inout_quartic(self) -> f64 {
-        if self < 0.5 { 8. * self * self * self * self }
-        else {
-            let y = self - 1.;
-            (y * y * y * y).mul_add(-8., 1.)
-        }
-    }
-    fn in_sin(self) -> f64 {
-        let y = (self - 1.) * FRAC_PI_2;
-        y.sin() + 1.
-    }
-    fn out_sin(self) -> f64 {
-        (self * FRAC_PI_2).sin()
-    }
-    fn inout_sin(self) -> f64 {
-        if self < 0.5 { 0.5 * (1. - (self * self).mul_add(-4., 1.).sqrt()) }
-        else          { 0.5 * ((self.mul_add(-2., 3.) * self.mul_add(2., -1.)).sqrt() + 1.) }
-    }
-    fn in_exp(self) -> f64 {
-        if self == 0. { 0. }
-        else          { (10. * (self - 1.)).exp2() }
-    }
-    fn out_exp(self) -> f64 {
-        if self == 1. { 1. }
-        else          { 1. - (-10. * self).exp2() }
-    }
-    fn inout_exp(self) -> f64 {
-        if      self == 1. { 1. }
-        else if self == 0. { 0. }
-        else if self < 0.5 { self.mul_add(20., -10.).exp2() * 0.5 }
-        else               { self.mul_add(-20., 10.).exp2().mul_add(-0.5, 1.) }
+        self.clamp(0.0, 1.0).lerp(0..127) as u8
     }
 }

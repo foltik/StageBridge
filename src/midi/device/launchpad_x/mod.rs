@@ -1,8 +1,8 @@
 use crate::color::Rgb;
 use crate::midi::Midi;
-use crate::num::{Byte, Float};
+use crate::num::{Byte, Interp};
 
-use super::Device;
+use super::MidiDevice;
 
 pub mod types;
 use types::*;
@@ -60,7 +60,7 @@ pub enum Output {
     Clock,
 }
 
-impl Device for LaunchpadX {
+impl MidiDevice for LaunchpadX {
     type Input = Input;
     type Output = Output;
 
@@ -72,15 +72,13 @@ impl Device for LaunchpadX {
 
     fn process_input(&mut self, raw: &[u8]) -> Option<Input> {
         Some(match raw[0] {
-            0x90 => {
-                match self.mode {
-                    Mode::Live => Input::Unknown,
-                    Mode::Programmer => {
-                        let i = Index::from_byte(raw[1]);
-                        match raw[2] {
-                            0 => Input::Release(i),
-                            v => Input::Press(i, v.midi_float())
-                        }
+            0x90 => match self.mode {
+                Mode::Live => Input::Unknown,
+                Mode::Programmer => {
+                    let i = Index::from_byte(raw[1]);
+                    match raw[2] {
+                        0 => Input::Release(i),
+                        v => Input::Press(i, v.midi_float()),
                     }
                 }
             },
@@ -108,7 +106,7 @@ impl Device for LaunchpadX {
             }
             0xD0 => Input::MonoPressure(raw[1].midi_float()),
             0xA0 => Input::PolyPressure(Index::from_byte(raw[1]), raw[2].midi_float()),
-            _ => return None
+            _ => return None,
         })
     }
 
@@ -120,8 +118,22 @@ impl Device for LaunchpadX {
             Output::Off(p) => vec![0x80, p.byte(), 0x0],
             Output::Rgb(p, col) => {
                 let Rgb(r, g, b) = col;
-                vec![0xF0, 0x0, 0x20, 0x29, 0x2, 0xC, 0x3, 0x3, p.byte(), r.midi_byte(), g.midi_byte(), b.midi_byte(), 0xF7]
-            },
+                vec![
+                    0xF0,
+                    0x0,
+                    0x20,
+                    0x29,
+                    0x2,
+                    0xC,
+                    0x3,
+                    0x3,
+                    p.byte(),
+                    r.midi_byte(),
+                    g.midi_byte(),
+                    b.midi_byte(),
+                    0xF7,
+                ]
+            }
             Output::Clear => {
                 let mut data = Vec::with_capacity(8 + (81 * 3));
 
@@ -132,7 +144,7 @@ impl Device for LaunchpadX {
                 data.push(0xF7);
 
                 data
-            },
+            }
             Output::ClearColor(color) => {
                 let mut data = Vec::with_capacity(8 + (64 * 4));
 
@@ -142,10 +154,10 @@ impl Device for LaunchpadX {
                         match color {
                             Color::Palette(col) => {
                                 data.extend_from_slice(&[0x0, Coord(i, j).byte(), col.byte()]);
-                            },
+                            }
                             Color::Rgb(r, g, b) => {
                                 data.extend_from_slice(&[0x3, Coord(i, j).byte(), r.midi_byte(), g.midi_byte(), b.midi_byte()]);
-                            },
+                            }
                         }
                     }
                 }
@@ -161,10 +173,10 @@ impl Device for LaunchpadX {
                     match color {
                         Color::Palette(col) => {
                             data.extend_from_slice(&[0x0, pos.byte(), col.byte()]);
-                        },
+                        }
                         Color::Rgb(r, g, b) => {
                             data.extend_from_slice(&[0x3, pos.byte(), r.midi_byte(), g.midi_byte(), b.midi_byte()]);
-                        },
+                        }
                     }
                 }
                 data.push(0xF7);
@@ -178,7 +190,7 @@ impl Device for LaunchpadX {
                     Mode::Programmer => 1,
                 };
                 vec![0xF0, 0x00, 0x20, 0x29, 0x2, 0x0C, 0x0E, mode, 0xF7]
-            },
+            }
             Output::Brightness(f) => vec![0xF0, 0x00, 0x20, 0x29, 0x2, 0xC, 0x8, f.midi_byte(), 0xF7],
             Output::Velocity(v) => {
                 let curve = match v {
@@ -190,11 +202,11 @@ impl Device for LaunchpadX {
 
                 let fixed = match v {
                     Velocity::Fixed(v) => v,
-                    _ => 0x00
+                    _ => 0x00,
                 };
 
                 vec![0xF0, 0x0, 0x20, 0x29, 0x2, 0xC, 0x04, curve, fixed, 0xF7]
-            },
+            }
             Output::Pressure(a, t) => {
                 let ty = match a {
                     Pressure::Polyphonic => 0,
@@ -209,7 +221,7 @@ impl Device for LaunchpadX {
                 };
 
                 vec![0xF0, 0x0, 0x20, 0x29, 0x2, 0xC, 0xB, ty, thres, 0xF7]
-            },
+            }
             Output::Clock => vec![0xF8],
         }
     }

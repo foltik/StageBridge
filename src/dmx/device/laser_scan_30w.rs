@@ -3,7 +3,7 @@
 //! https://www.amazon.com/gp/product/B09LVGQ2GY
 
 use crate::dmx::Device;
-use crate::num::Float;
+use crate::num::Interp;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Laser {
@@ -102,17 +102,17 @@ impl LaserColor {
             LaserColor::Raw(i) => i,
 
             LaserColor::Rgb(r, g, b) => match (r, g, b) {
-                (true, false, false) => 76, // R
-                (false, true, false) => 98, // G
+                (true, false, false) => 76,  // R
+                (false, true, false) => 98,  // G
                 (false, false, true) => 116, // B
 
-                (true, true, false) => 86, // RG
+                (true, true, false) => 86,  // RG
                 (true, false, true) => 122, // RB
                 (false, true, true) => 104, // BG
 
-                (true, true, true) => 64, // RGB
+                (true, true, true) => 64,   // RGB
                 (false, false, false) => 0, // unused
-            }
+            },
 
             LaserColor::Mix(i) => match i % 7 {
                 0 => 0,
@@ -123,7 +123,7 @@ impl LaserColor {
                 5 => 50,
                 6 => 58,
                 _ => 0,
-            }
+            },
         }
     }
 }
@@ -131,8 +131,8 @@ impl LaserColor {
 impl LaserStroke {
     pub fn byte(self) -> u8 {
         match self {
-            LaserStroke::Solid(fr) => fr.inv().lerp_byte(0..127),
-            LaserStroke::Dots(fr) => fr.inv().lerp_byte(128..255),
+            LaserStroke::Solid(fr) => fr.inv().lerp(0..127) as u8,
+            LaserStroke::Dots(fr) => fr.inv().lerp(128..255) as u8,
         }
     }
 }
@@ -215,17 +215,19 @@ impl Default for Laser {
 }
 
 impl Device for Laser {
-    fn channels(&self) -> usize { 10 }
+    fn channels(&self) -> usize {
+        10
+    }
 
     fn encode(&self, buf: &mut [u8]) {
         buf[0] = if self.on { 64 } else { 0 };
         buf[1] = self.pattern.byte();
-        buf[2] = self.rotate.lerp_byte(0..127);
-        buf[3] = self.yflip.lerp_byte(0..127);
-        buf[4] = self.xflip.lerp_byte(0..127);
-        buf[5] = self.x.lerp_byte(0..127);
-        buf[6] = self.y.lerp_byte(0..127);
-        buf[7] = self.size.lerp_byte(0..63);
+        buf[2] = self.rotate.lerp(0..127) as u8;
+        buf[3] = self.yflip.lerp(0..127) as u8;
+        buf[4] = self.xflip.lerp(0..127) as u8;
+        buf[5] = self.x.lerp(0..127) as u8;
+        buf[6] = self.y.lerp(0..127) as u8;
+        buf[7] = self.size.lerp(0..63) as u8;
         buf[8] = self.color.byte();
         buf[9] = self.stroke.byte();
     }

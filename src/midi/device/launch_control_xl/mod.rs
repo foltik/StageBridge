@@ -1,4 +1,4 @@
-use super::Device;
+use super::MidiDevice;
 
 pub mod types;
 use types::*;
@@ -79,7 +79,7 @@ fn light_sysex(idx: u8, color: Color, brightness: Brightness) -> Vec<u8> {
     ]
 }
 
-impl Device for LaunchControlXL {
+impl MidiDevice for LaunchControlXL {
     type Input = Input;
     type Output = Output;
 

@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use super::Midi;
 
-pub trait Device: Sized + Send + 'static {
+pub trait MidiDevice: Sized + Send + 'static {
     type Input: Send + Debug;
     type Output: Send + Debug;
 

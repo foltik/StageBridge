@@ -2,18 +2,20 @@
 //!
 //! https://www.aliexpress.com/w/wholesale-12x3w-rgbw-dmx-led-par-light.html
 
-use crate::dmx::Device;
-use crate::num::Float;
 use crate::color::Rgbw;
+use crate::dmx::Device;
+use crate::num::Interp;
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Par {
     pub color: Rgbw,
     pub alpha: f64,
 }
 
 impl Device for Par {
-    fn channels(&self) -> usize { 8 }
+    fn channels(&self) -> usize {
+        8
+    }
 
     fn encode(&self, buf: &mut [u8]) {
         let Rgbw(r, g, b, w) = self.color;
@@ -31,9 +33,6 @@ impl Device for Par {
 
 impl Default for Par {
     fn default() -> Self {
-        Self {
-            color: Rgbw::BLACK,
-            alpha: 1.0,
-        }
+        Self { color: Rgbw::BLACK, alpha: 1.0 }
     }
 }

@@ -1,3 +1,4 @@
+/// A bounded range from `(lo, hi]`
 #[derive(Clone, Copy, Debug)]
 pub struct Range {
     pub lo: f64,
@@ -5,18 +6,18 @@ pub struct Range {
 }
 
 impl Range {
+    /// Swap the `lo` and `hi` bounds.
     pub fn invert(self) -> Range {
-        Self {
-            lo: self.hi,
-            hi: self.lo,
-        }
+        Self { lo: self.hi, hi: self.lo }
     }
 
+    /// Return a pair of the `lo` and `hi` bounds.
     pub fn bounds(self) -> (f64, f64) {
         (self.lo, self.hi)
     }
 
-    pub fn order(self) -> Self {
+    /// Sort the `lo` and `hi` bounds.
+    pub fn sort(self) -> Self {
         if self.lo < self.hi {
             self
         } else {

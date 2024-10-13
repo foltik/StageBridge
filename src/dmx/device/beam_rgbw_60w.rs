@@ -3,9 +3,9 @@
 //! https://www.amazon.com/gp/product/B089QGPJ2L
 //! https://www.aliexpress.com/w/wholesale-Beam-60W-LED-Moving-Head-RGBW-4-IN-1-Stage-Lightin.html
 
-use crate::dmx::Device;
-use crate::num::Float;
 use crate::color::Rgbw;
+use crate::dmx::Device;
+use crate::num::Interp;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Beam {
@@ -56,16 +56,17 @@ pub enum BeamRing {
     Raw(u8),
 }
 
-
 impl Device for Beam {
-    fn channels(&self) -> usize { 15 }
+    fn channels(&self) -> usize {
+        15
+    }
 
     fn encode(&self, buf: &mut [u8]) {
         let Rgbw(r, g, b, w) = self.color;
 
         buf[0] = self.yaw.byte();
         // buf[0] = (self.yaw * (2.0 / 3.0)).byte();
-        buf[0] = self.yaw.lerp((1.0/3.0)..1.0).byte();
+        buf[0] = self.yaw.lerp((1.0 / 3.0)..1.0).byte();
         // buf[1]: yaw fine
         buf[2] = self.pitch.byte();
         // buf[3]: pitch fine

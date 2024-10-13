@@ -1,4 +1,4 @@
-use super::Device;
+use super::MidiDevice;
 
 #[derive(Debug, Default)]
 pub struct WorldeEasyControl9 {
@@ -19,7 +19,7 @@ pub enum Input {
     Bank(u8),
 }
 
-impl Device for WorldeEasyControl9 {
+impl MidiDevice for WorldeEasyControl9 {
     type Input = Input;
     type Output = Vec<u8>;
 
@@ -33,9 +33,7 @@ impl Device for WorldeEasyControl9 {
 
                 match cc {
                     1..=2 => Input::BankButton(cc - 1, on),
-                    9 => Input::Fader(
-                        (std::cmp::max(state, 1) - 1) as f64 / 126.0,
-                    ),
+                    9 => Input::Fader((std::cmp::max(state, 1) - 1) as f64 / 126.0),
                     14..=22 => Input::Knob(cc - 14, fl),
                     23..=31 => Input::MainButton(cc - 23, on),
                     32..=40 => Input::Slider(cc - 32, fl),
@@ -69,7 +67,7 @@ impl Device for WorldeEasyControl9 {
                 self.bank = b;
                 Input::Bank(b)
             }
-            _ => unreachable!()
+            _ => unreachable!(),
         })
     }
 
