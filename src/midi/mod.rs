@@ -9,8 +9,6 @@ use midir::{MidiInput, MidiInputConnection, MidiOutput};
 pub mod device;
 use device::MidiDevice;
 
-const NAME: &str = "stagebridge";
-
 /// A MIDI device.
 pub enum Midi<D: MidiDevice> {
     Connected {
@@ -61,11 +59,16 @@ impl<D: MidiDevice> Midi<D> {
     }
 
     /// Call the given callback with any pending MIDI events.
-    pub fn recv(&mut self, mut handler: impl FnMut(D::Input)) {
-        if let Midi::Connected { in_rx, .. } = self {
-            while let Ok(event) = in_rx.try_recv() {
-                handler(event);
+    pub fn recv(&mut self) -> Vec<D::Input> {
+        match self {
+            Midi::Connected { in_rx, .. } => {
+                let mut msgs = vec![];
+                while let Ok(event) = in_rx.try_recv() {
+                    msgs.push(event);
+                }
+                msgs
             }
+            Midi::Disconnected => vec![],
         }
     }
 
@@ -79,8 +82,8 @@ impl<D: MidiDevice> Midi<D> {
 
     /// Log all available midi devices.
     pub fn list() -> Result<()> {
-        let midi_in = MidiInput::new(&format!("{NAME}_list_in"))?;
-        let midi_out = MidiOutput::new(&format!("{NAME}_list_out"))?;
+        let midi_in = MidiInput::new(&format!("_list_inputs"))?;
+        let midi_out = MidiOutput::new(&format!("_list_outputs"))?;
 
         for port in midi_in.ports() {
             log::info!("IN: '{:?}'", midi_in.port_name(&port).unwrap());
@@ -105,8 +108,8 @@ impl MidiRaw {
         let (in_tx, in_rx) = mpsc::channel::<Vec<u8>>();
         let (out_tx, out_rx) = mpsc::channel::<Vec<u8>>();
 
-        let midi_in = MidiInput::new(&format!("StageBridge_in_{}", name))?;
-        let midi_out = MidiOutput::new(&format!("StageBridge_out_{}", name))?;
+        let midi_in = MidiInput::new(&format!("{}_in", name))?;
+        let midi_out = MidiOutput::new(&format!("{}_out", name))?;
 
         let in_port = midi_in
             .ports()

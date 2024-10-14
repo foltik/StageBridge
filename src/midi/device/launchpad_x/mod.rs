@@ -64,10 +64,10 @@ impl MidiDevice for LaunchpadX {
     type Input = Input;
     type Output = Output;
 
-    fn init(midi: &mut Midi<Self>) {
-        midi.send(Output::Mode(Mode::Programmer));
-        midi.send(Output::Pressure(Pressure::Polyphonic, PressureCurve::Medium));
-        midi.send(Output::Clear);
+    fn init(pad: &mut Midi<Self>) {
+        pad.send(Output::Mode(Mode::Programmer));
+        pad.send(Output::Pressure(Pressure::Polyphonic, PressureCurve::Medium));
+        pad.send(Output::Clear);
     }
 
     fn process_input(&mut self, raw: &[u8]) -> Option<Input> {

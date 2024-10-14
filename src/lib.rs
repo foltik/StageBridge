@@ -22,5 +22,6 @@ pub mod num;
 
 /// A set of common traits and types. Bring in scope with `use prelude::*`.
 pub mod prelude {
+    pub use crate::color::{Rgb, Rgbw};
     pub use crate::num::{Byte, Ease, Interp, Range};
 }

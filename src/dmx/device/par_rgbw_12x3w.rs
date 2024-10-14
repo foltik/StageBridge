@@ -6,10 +6,9 @@ use crate::color::Rgbw;
 use crate::dmx::Device;
 use crate::num::Interp;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Par {
     pub color: Rgbw,
-    pub alpha: f64,
 }
 
 impl Device for Par {
@@ -23,7 +22,7 @@ impl Device for Par {
         // buf[0]: e
         // buf[1]: ?
         // buf[2]: ?
-        buf[3] = self.alpha.byte();
+        buf[3] = 1.0.byte();
         buf[4] = r.byte();
         buf[5] = g.byte();
         buf[6] = b.byte();
@@ -33,6 +32,6 @@ impl Device for Par {
 
 impl Default for Par {
     fn default() -> Self {
-        Self { color: Rgbw::BLACK, alpha: 1.0 }
+        Self { color: Rgbw::BLACK }
     }
 }

@@ -82,11 +82,13 @@ impl Osc {
         Ok(Self { send_sock, rx })
     }
 
-    /// Call the given callback with any pending OSC messages.
-    pub fn recv(&mut self, mut handler: impl FnMut((String, Vec<OscType>))) {
+    /// Receive any pending OSC messages.
+    pub fn recv(&mut self) -> Vec<(String, Vec<OscType>)> {
+        let mut msgs = vec![];
         while let Ok(msg) = self.rx.try_recv() {
-            handler(msg)
+            msgs.push(msg);
         }
+        msgs
     }
 
     /// Send an OSC message to the given destination.
