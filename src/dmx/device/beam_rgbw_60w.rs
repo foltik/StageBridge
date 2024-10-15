@@ -66,7 +66,7 @@ impl Device for Beam {
 
         buf[0] = self.yaw.byte();
         // buf[0] = (self.yaw * (2.0 / 3.0)).byte();
-        buf[0] = self.yaw.lerp((1.0 / 3.0)..1.0).byte();
+        // buf[0] = self.yaw.lerp((1.0 / 3.0)..1.0).byte();
         // buf[1]: yaw fine
         buf[2] = self.pitch.byte();
         // buf[3]: pitch fine
@@ -132,7 +132,7 @@ impl Default for Beam {
             ring: BeamRing::Off,
 
             pitch: 0.0,
-            yaw: 2.0 / 3.0,
+            yaw: 0.5,
             speed: 1.0,
 
             color: Rgbw::BLACK,

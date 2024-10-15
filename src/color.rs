@@ -97,7 +97,7 @@ mod consts {
     #[rustfmt::skip]
     impl Rgbw {
         pub const BLACK:   Self = Self(0.0,   0.0,   0.0,   0.0);
-        pub const WHITE:   Self = Self(1.0,   1.0,   1.0,   1.0);
+        pub const WHITE:   Self = Self(0.0,   0.0,   0.0,   1.0);
         pub const RGB:     Self = Self(1.0,   1.0,   1.0,   0.0);
         pub const RGBW:    Self = Self(1.0,   1.0,   1.0,   1.0);
         pub const RED:     Self = Self(1.0,   0.0,   0.0,   0.0);

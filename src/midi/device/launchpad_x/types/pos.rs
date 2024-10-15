@@ -1,5 +1,5 @@
-use std::fmt::Debug;
 use std::cmp::min;
+use std::fmt::Debug;
 
 pub trait IPos: Copy + Clone + Debug {
     fn byte(&self) -> u8;
@@ -37,7 +37,7 @@ impl Pos {
             let _i = i;
             if i < n {
                 i += 1;
-                Some(Coord(x + _i*sign, y).into())
+                Some(Coord(x + _i * sign, y).into())
             } else {
                 None
             }
@@ -55,7 +55,7 @@ impl Pos {
             let _i = i;
             if i < n {
                 i += 1;
-                Some(Coord(x, y + _i*sign).into())
+                Some(Coord(x, y + _i * sign).into())
             } else {
                 None
             }
@@ -162,6 +162,12 @@ impl From<Coord> for Pos {
 impl From<Pos> for Coord {
     fn from(p: Pos) -> Self {
         Self::from_byte(p.byte())
+    }
+}
+
+impl From<Index> for Coord {
+    fn from(i: Index) -> Self {
+        Coord::from(Pos::from(i))
     }
 }
 
