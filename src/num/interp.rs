@@ -61,6 +61,8 @@ pub trait Interp: Sized {
     /// Square wave, but booleans
     fn bsquare(self, pd: Self, duty: Self) -> bool;
 
+    fn trapazoid(self, pd: Self, ramp: Self) -> Self;
+
     /// Convert 0..1 to 0..255u8
     fn byte(self) -> u8;
     /// Convert 0..1 to 0..127u8
@@ -140,6 +142,16 @@ impl Interp for f64 {
     }
     fn bsquare(self, pd: f64, duty: f64) -> bool {
         self.square(pd, duty) == 1.0
+    }
+
+    fn trapazoid(self, pd: f64, ramp_dur: f64) -> Self {
+        if self < ramp_dur {
+            self / ramp_dur
+        } else if self < pd - ramp_dur {
+            1.0
+        } else {
+            1.0 - (self - pd + ramp_dur) / ramp_dur
+        }
     }
 
     fn byte(self) -> u8 {
