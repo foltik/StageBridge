@@ -1,7 +1,7 @@
 use crate::num::Interp;
 
 /// An (r, g, b) color.
-#[derive(Default, Clone, Copy, Debug)]
+#[derive(Default, Clone, Copy, Debug, PartialEq)]
 pub struct Rgb(pub f64, pub f64, pub f64);
 
 impl Rgb {

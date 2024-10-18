@@ -132,7 +132,7 @@ impl Default for Beam {
             ring: BeamRing::Off,
 
             pitch: 0.0,
-            yaw: 0.5,
+            yaw: 0.33,
             speed: 1.0,
 
             color: Rgbw::BLACK,

@@ -2,6 +2,7 @@
 //!
 //! https://www.amazon.com/gp/product/B09LVGQ2GY
 
+use crate::color::Rgb;
 use crate::dmx::Device;
 use crate::num::Interp;
 
@@ -124,6 +125,15 @@ impl LaserColor {
                 6 => 58,
                 _ => 0,
             },
+        }
+    }
+
+    pub fn from_rgb(rgb: Rgb) -> Self {
+        match rgb {
+            Rgb::RED => Self::RED,
+            Rgb::LIME => Self::GREEN,
+            Rgb::BLUE => Self::BLUE,
+            _ => Self::Rgb(true, true, true),
         }
     }
 }
