@@ -1,5 +1,5 @@
 /// A bounded range from `(lo, hi]`
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Range {
     pub lo: f64,
     pub hi: f64,

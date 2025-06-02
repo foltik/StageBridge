@@ -1,7 +1,6 @@
-//! 60W RGBW moving head
+//! 90W RGBW moving head
 //!
-//! https://www.amazon.com/gp/product/B089QGPJ2L
-//! https://www.aliexpress.com/w/wholesale-Beam-60W-LED-Moving-Head-RGBW-4-IN-1-Stage-Lightin.html
+//! TODO: amazon link
 
 use crate::color::Rgbw;
 use crate::dmx::Device;

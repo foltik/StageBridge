@@ -2,13 +2,13 @@
 //!
 //! https://www.amazon.com/gp/product/B0045EP4WG
 
-use crate::color::Rgb;
+use crate::color::Rgbw;
 use crate::dmx::Device;
 use crate::num::Interp;
 
 #[derive(Default, Clone, Copy, Debug)]
 pub struct Bar {
-    pub color: Rgb,
+    pub color: Rgbw,
     pub alpha: f64,
 }
 
@@ -18,7 +18,18 @@ impl Device for Bar {
     }
 
     fn encode(&self, buf: &mut [u8]) {
-        let Rgb(r, g, b) = self.color;
+        let Rgbw(r, g, b, w) = self.color;
+
+        if r == g && g == b && w == 0.0 {
+            // ignore Rgb::WHITE since we have to white channel
+            buf[0] = 0;
+            buf[1] = 0;
+            buf[2] = 0;
+        } else {
+            buf[0] = r.byte();
+            buf[1] = g.byte();
+            buf[2] = b.byte();
+        }
 
         buf[0] = r.byte();
         buf[1] = g.byte();

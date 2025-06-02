@@ -41,6 +41,18 @@ pub enum Input {
     Unknown,
 }
 
+impl Input {
+    pub fn xy(self) -> Option<(i8, i8)> {
+        match self {
+            Input::Press(i, _) => {
+                let c = Coord::from(i);
+                Some((c.0, c.1))
+            }
+            _ => None,
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub enum Output {
     Light(Pos, PaletteColor),

@@ -142,7 +142,7 @@ impl From<OscType> for RoscType {
         match ty {
             OscType::Bool(b) => RoscType::Bool(b),
             OscType::Int(i) => RoscType::Long(i),
-            OscType::Float(f) => RoscType::Double(f),
+            OscType::Float(f) => RoscType::Float(f as f32),
             OscType::String(str) => RoscType::String(str),
             OscType::Blob(b) => RoscType::Blob(b),
             OscType::Array(arr) => RoscType::Array(RoscArray { content: arr.into_iter().map(RoscType::from).collect() }),

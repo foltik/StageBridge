@@ -16,7 +16,7 @@ impl Rgb {
 }
 
 /// An (r, g, b, w) color.
-#[derive(Default, Clone, Copy, Debug)]
+#[derive(Default, Clone, Copy, PartialEq, Debug)]
 pub struct Rgbw(pub f64, pub f64, pub f64, pub f64);
 
 /// Conversions
@@ -54,7 +54,7 @@ mod conv {
 /// Operators
 mod ops {
     use super::*;
-    use std::ops::Mul;
+    use std::ops::{Add, AddAssign, Mul};
 
     // Rgb * f64 -> Rgb, with each color channel scaled.
     impl Mul<f64> for Rgb {
@@ -71,6 +71,34 @@ mod ops {
             Self(self.0 * fr, self.1 * fr, self.2 * fr, self.3 * fr)
         }
     }
+
+    // Normalized sum
+    impl Add<Rgbw> for Rgbw {
+        type Output = Rgbw;
+        fn add(self, rhs: Rgbw) -> Self::Output {
+            // sum channels
+            let mut r = self.0 + rhs.0;
+            let mut g = self.1 + rhs.1;
+            let mut b = self.2 + rhs.2;
+            let mut w = self.3 + rhs.3;
+
+            // normalize so the brightest channel is at most 1.0
+            let max = r.max(g).max(b).max(w);
+            if max > 1.0 {
+                r /= max;
+                g /= max;
+                b /= max;
+                w /= max;
+            }
+
+            Rgbw(r, g, b, w)
+        }
+    }
+    impl AddAssign for Rgbw {
+        fn add_assign(&mut self, rhs: Self) {
+            *self = *self + rhs;
+        }
+    }
 }
 
 mod consts {
@@ -81,6 +109,7 @@ mod consts {
         pub const BLACK:   Self = Self(0.0,   0.0,   0.0);
         pub const WHITE:   Self = Self(1.0,   1.0,   1.0);
         pub const RGB:     Self = Self(1.0,   1.0,   1.0);
+        pub const HOUSE:   Self = Self(1.0,   0.48,  0.0);
         pub const RED:     Self = Self(1.0,   0.0,   0.0);
         pub const ORANGE:  Self = Self(1.0,   0.251, 0.0);
         pub const YELLOW:  Self = Self(1.0,   1.0,   0.0);
@@ -100,6 +129,7 @@ mod consts {
         pub const WHITE:   Self = Self(0.0,   0.0,   0.0,   1.0);
         pub const RGB:     Self = Self(1.0,   1.0,   1.0,   0.0);
         pub const RGBW:    Self = Self(1.0,   1.0,   1.0,   1.0);
+        pub const HOUSE:   Self = Self(1.0,   0.48,  0.0,   0.0);
         pub const RED:     Self = Self(1.0,   0.0,   0.0,   0.0);
         pub const ORANGE:  Self = Self(1.0,   0.251, 0.0,   0.0);
         pub const YELLOW:  Self = Self(1.0,   1.0,   0.0,   0.0);
