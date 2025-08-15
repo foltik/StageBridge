@@ -41,7 +41,9 @@ impl<D: MidiDevice> Midi<D> {
                     if let Ok(output) = out_rx.try_recv() {
                         log::trace!("{_name} -> {output:?}");
                         let data = device.process_output(output);
-                        raw_tx.send(data).unwrap();
+                        if !data.is_empty() {
+                            raw_tx.send(data).unwrap();
+                        }
                     }
 
                     thread::sleep(Duration::from_millis(1));

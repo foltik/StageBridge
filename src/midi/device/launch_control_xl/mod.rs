@@ -1,12 +1,20 @@
-use crate::midi::Midi;
-
 use super::MidiDevice;
+use crate::midi::Midi;
 
 pub mod types;
 use types::*;
 
-#[derive(Copy, Clone, Debug)]
-pub struct LaunchControlXL;
+#[derive(Debug)]
+pub struct LaunchControlXL {
+    /// Cache of last requested (Color, Brightness) per hardware LED index.
+    cache: [Option<(Color, Brightness)>; 0x30],
+}
+
+impl Default for LaunchControlXL {
+    fn default() -> Self {
+        Self { cache: [None; 0x30] }
+    }
+}
 
 #[derive(Copy, Clone, Debug)]
 pub enum Input {
@@ -80,11 +88,34 @@ fn light_sysex(idx: u8, color: Color, brightness: Brightness) -> Vec<u8> {
         0x02,
         0x11,
         0x78,
-        0x0,
+        0x00,
         idx,
         color_mask(color, brightness),
         0xf7,
     ]
+}
+
+impl LaunchControlXL {
+    /// Map a logical Output to the hardware LED index and desired (Color, Brightness).
+    #[inline]
+    fn map_output(o: &Output) -> (u8, Color, Brightness) {
+        match *o {
+            Output::SendA(idx, col, b) => (idx, col, b),
+            Output::SendB(idx, col, b) => (idx + 0x08, col, b),
+            Output::Pan(idx, col, b) => (idx + 0x10, col, b),
+
+            Output::Focus(idx, col, b) => (idx + 0x18, col, b),
+            Output::Control(idx, col, b) => (idx + 0x20, col, b),
+
+            Output::SendSelect(i, col, b) => (if i { 0x2c } else { 0x2d }, col, b),
+            Output::TrackSelect(i, col, b) => (if i { 0x2e } else { 0x2f }, col, b),
+
+            Output::Device(col, b) => (0x28, col, b),
+            Output::Mute(col, b) => (0x29, col, b),
+            Output::Solo(col, b) => (0x2a, col, b),
+            Output::Record(col, b) => (0x2b, col, b),
+        }
+    }
 }
 
 impl MidiDevice for LaunchControlXL {
@@ -153,21 +184,22 @@ impl MidiDevice for LaunchControlXL {
     }
 
     fn process_output(&mut self, output: Output) -> Vec<u8> {
-        match output {
-            Output::SendA(idx, col, b) => light_sysex(idx, col, b),
-            Output::SendB(idx, col, b) => light_sysex(idx + 0x8, col, b),
-            Output::Pan(idx, col, b) => light_sysex(idx + 0x10, col, b),
+        let (idx, col, b) = LaunchControlXL::map_output(&output);
+        let slot = idx as usize;
 
-            Output::Focus(idx, col, b) => light_sysex(idx + 0x18, col, b),
-            Output::Control(idx, col, b) => light_sysex(idx + 0x20, col, b),
+        let new_mask = color_mask(col, b);
+        let changed = match self.cache[slot] {
+            Some((old_c, old_b)) => color_mask(old_c, old_b) != new_mask,
+            None => true,
+        };
 
-            Output::SendSelect(i, col, b) => light_sysex(if i { 0x2c } else { 0x2d }, col, b),
-            Output::TrackSelect(i, col, b) => light_sysex(if i { 0x2e } else { 0x2f }, col, b),
-
-            Output::Device(col, b) => light_sysex(0x28, col, b),
-            Output::Mute(col, b) => light_sysex(0x29, col, b),
-            Output::Solo(col, b) => light_sysex(0x2a, col, b),
-            Output::Record(col, b) => light_sysex(0x2b, col, b),
+        if changed {
+            // Update cache and emit sysex.
+            self.cache[slot] = Some((col, b));
+            light_sysex(idx, col, b)
+        } else {
+            // No change -> do nothing.
+            Vec::new()
         }
     }
 }

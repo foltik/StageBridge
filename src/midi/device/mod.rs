@@ -12,6 +12,6 @@ pub trait MidiDevice: Sized + Send + 'static {
     fn init(_midi: &mut Midi<Self>) {}
 }
 
-pub mod worlde_easycontrol9;
-pub mod launchpad_x;
 pub mod launch_control_xl;
+pub mod launchpad_x;
+pub mod worlde_easycontrol9;
