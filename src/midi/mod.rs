@@ -114,12 +114,12 @@ impl MidiRaw {
         let in_port = midi_in
             .ports()
             .into_iter()
-            .find(|p| midi_in.port_name(p).unwrap().starts_with(name))
+            .find(|p| midi_in.port_name(p).unwrap().contains(name))
             .with_context(|| format!("no midi input '{name}'"))?;
         let out_port = midi_out
             .ports()
             .into_iter()
-            .find(|p| midi_out.port_name(p).unwrap().starts_with(name))
+            .find(|p| midi_out.port_name(p).unwrap().contains(name))
             .with_context(|| format!("no midi output '{name}'"))?;
 
         let _name = name.to_string();
