@@ -54,7 +54,7 @@ mod conv {
 /// Operators
 mod ops {
     use super::*;
-    use std::ops::{Add, AddAssign, Mul};
+    use std::ops::{Add, AddAssign, Mul, MulAssign};
 
     // Rgb * f64 -> Rgb, with each color channel scaled.
     impl Mul<f64> for Rgb {
@@ -63,12 +63,22 @@ mod ops {
             Self(self.0 * fr, self.1 * fr, self.2 * fr)
         }
     }
+    impl MulAssign<f64> for Rgb {
+        fn mul_assign(&mut self, rhs: f64) {
+            *self = *self * rhs;
+        }
+    }
 
     // Rgbw * f64 -> Rgbw, with each color channel scaled.
     impl Mul<f64> for Rgbw {
         type Output = Rgbw;
         fn mul(self, fr: f64) -> Rgbw {
             Self(self.0 * fr, self.1 * fr, self.2 * fr, self.3 * fr)
+        }
+    }
+    impl MulAssign<f64> for Rgbw {
+        fn mul_assign(&mut self, rhs: f64) {
+            *self = *self * rhs;
         }
     }
 
